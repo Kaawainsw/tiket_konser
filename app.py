@@ -1,96 +1,109 @@
 # app.py
+
 import streamlit as st
-from datetime import datetime
+
 
 # =========================
 # CLASS NODE
 # =========================
 class Node:
-    def __init__(self, plat, jenis):
-        self.plat = plat
-        self.jenis = jenis
-        self.jam_masuk = datetime.now()
+    def __init__(self, nama, kategori, jumlah):
+        self.nama = nama
+        self.kategori = kategori
+        self.jumlah = jumlah
         self.next = None
 
 
 # =========================
 # CLASS LINKED LIST
 # =========================
-class ParkingLinkedList:
+class TicketLinkedList:
     def __init__(self):
         self.head = None
 
-    # tambah kendaraan
-    def tambah_kendaraan(self, plat, jenis):
-        kendaraan_baru = Node(plat, jenis)
+    # tambah pembeli
+    def tambah_pembeli(self, nama, kategori, jumlah):
+
+        pembeli_baru = Node(
+            nama,
+            kategori,
+            jumlah
+        )
 
         if self.head is None:
-            self.head = kendaraan_baru
+            self.head = pembeli_baru
+
         else:
             current = self.head
 
             while current.next:
                 current = current.next
 
-            current.next = kendaraan_baru
+            current.next = pembeli_baru
 
-    # tampilkan kendaraan
-    def tampilkan_kendaraan(self):
+    # tampilkan data
+    def tampilkan_pembeli(self):
+
         data = []
 
         current = self.head
 
         while current:
+
+            # harga tiket
+            if current.kategori == "VIP":
+                harga = 500000
+            else:
+                harga = 250000
+
+            total = harga * current.jumlah
+
             data.append({
-                "Plat Nomor": current.plat,
-                "Jenis": current.jenis,
-                "Jam Masuk": current.jam_masuk.strftime("%H:%M:%S")
+                "Nama": current.nama,
+                "Kategori": current.kategori,
+                "Jumlah Tiket": current.jumlah,
+                "Total Harga": f"Rp {total:,}"
             })
 
             current = current.next
 
         return data
 
-    # kendaraan keluar
-    def keluar_kendaraan(self, plat):
+    # hapus pembeli
+    def hapus_pembeli(self, nama):
+
         current = self.head
         previous = None
 
         while current:
 
-            if current.plat == plat:
+            if current.nama == nama:
 
-                # hitung durasi parkir
-                sekarang = datetime.now()
-                durasi = sekarang - current.jam_masuk
-
-                jam = max(1, durasi.seconds // 3600)
-
-                # tarif parkir
-                if current.jenis == "Mobil":
-                    tarif = 5000
-                else:
-                    tarif = 2000
-
-                total_bayar = jam * tarif
-
-                # hapus node
                 if previous is None:
                     self.head = current.next
+
                 else:
                     previous.next = current.next
 
-                return {
-                    "plat": current.plat,
-                    "jenis": current.jenis,
-                    "durasi": jam,
-                    "total": total_bayar
-                }
+                return True
 
             previous = current
             current = current.next
 
-        return None
+        return False
+
+    # hitung total tiket
+    def total_tiket(self):
+
+        total = 0
+
+        current = self.head
+
+        while current:
+            total += current.jumlah
+            current = current.next
+
+        return total
 
 
 # =========================
@@ -98,118 +111,137 @@ class ParkingLinkedList:
 # =========================
 
 st.set_page_config(
-    page_title="Sistem Parkir",
+    page_title="Sistem Tiket Konser",
     layout="wide"
 )
 
-st.title("🚗 Sistem Parkir Kampus")
+st.title("🎫 Sistem Pemesanan Tiket Konser")
 
 # session state
-if "parkir" not in st.session_state:
-    st.session_state.parkir = ParkingLinkedList()
+if "tiket" not in st.session_state:
+    st.session_state.tiket = TicketLinkedList()
 
-if "total_pemasukan" not in st.session_state:
-    st.session_state.total_pemasukan = 0
-
+TOTAL_TIKET = 100
 
 # =========================
-# FORM TAMBAH KENDARAAN
+# FORM INPUT
 # =========================
 
-st.subheader("➕ Tambah Kendaraan")
+st.subheader("📝 Pesan Tiket")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
-    plat = st.text_input("Plat Nomor")
+    nama = st.text_input("Nama Pembeli")
 
 with col2:
-    jenis = st.selectbox(
-        "Jenis Kendaraan",
-        ["Mobil", "Motor"]
+    kategori = st.selectbox(
+        "Kategori Tiket",
+        ["VIP", "Festival"]
     )
 
-if st.button("Tambah Kendaraan"):
+with col3:
+    jumlah = st.number_input(
+        "Jumlah Tiket",
+        min_value=1,
+        step=1
+    )
 
-    if plat != "":
+# tombol tambah
+if st.button("Pesan Tiket"):
 
-        st.session_state.parkir.tambah_kendaraan(
-            plat,
-            jenis
-        )
+    tiket_terjual = st.session_state.tiket.total_tiket()
 
-        st.success("Kendaraan berhasil masuk!")
+    if tiket_terjual + jumlah > TOTAL_TIKET:
+
+        st.error("Tiket tidak mencukupi!")
+
+    elif nama == "":
+
+        st.warning("Nama wajib diisi!")
 
     else:
-        st.warning("Plat nomor wajib diisi")
+
+        st.session_state.tiket.tambah_pembeli(
+            nama,
+            kategori,
+            jumlah
+        )
+
+        st.success("Tiket berhasil dipesan!")
 
 
 # =========================
-# TAMPILKAN DATA PARKIR
+# TABEL PEMBELI
 # =========================
 
-st.subheader("📋 Daftar Kendaraan Parkir")
+st.subheader("📋 Daftar Pembeli")
 
-data_parkir = st.session_state.parkir.tampilkan_kendaraan()
+data = st.session_state.tiket.tampilkan_pembeli()
 
-if data_parkir:
-    st.table(data_parkir)
+if data:
+    st.table(data)
+
 else:
-    st.info("Belum ada kendaraan parkir")
+    st.info("Belum ada pembeli")
 
 
 # =========================
-# KENDARAAN KELUAR
+# BATALKAN TIKET
 # =========================
 
-st.subheader("🚪 Kendaraan Keluar")
+st.subheader("❌ Batalkan Tiket")
 
-daftar_plat = [
-    kendaraan["Plat Nomor"]
-    for kendaraan in data_parkir
+daftar_nama = [
+    pembeli["Nama"]
+    for pembeli in data
 ]
 
-if daftar_plat:
+if daftar_nama:
 
-    plat_keluar = st.selectbox(
-        "Pilih Kendaraan",
-        daftar_plat
+    nama_hapus = st.selectbox(
+        "Pilih Pembeli",
+        daftar_nama
     )
 
-    if st.button("Hitung Biaya & Keluar"):
+    if st.button("Batalkan Tiket"):
 
-        hasil = st.session_state.parkir.keluar_kendaraan(
-            plat_keluar
+        hasil = st.session_state.tiket.hapus_pembeli(
+            nama_hapus
         )
 
         if hasil:
+            st.success("Tiket berhasil dibatalkan!")
 
-            st.session_state.total_pemasukan += hasil["total"]
-
-            st.success("Kendaraan keluar berhasil!")
-
-            st.write("### 💰 Detail Pembayaran")
-            st.write(f"Plat Nomor : {hasil['plat']}")
-            st.write(f"Jenis : {hasil['jenis']}")
-            st.write(f"Durasi : {hasil['durasi']} jam")
-            st.write(f"Total Bayar : Rp {hasil['total']:,}")
+        else:
+            st.error("Data tidak ditemukan")
 
 else:
-    st.info("Tidak ada kendaraan")
+    st.info("Tidak ada data pembeli")
 
 
 # =========================
 # STATISTIK
 # =========================
 
+tiket_terjual = st.session_state.tiket.total_tiket()
+tiket_sisa = TOTAL_TIKET - tiket_terjual
+
 st.sidebar.title("📊 Statistik")
 
 st.sidebar.metric(
-    "Jumlah Kendaraan",
-    len(data_parkir)
+    "Tiket Terjual",
+    tiket_terjual
 )
 
 st.sidebar.metric(
-    "Total Pemasukan",
-    f"Rp {st.session_state.total_pemasukan:,}"
+    "Tiket Tersisa",
+    tiket_sisa
 )
+
+# status tiket
+if tiket_sisa == 0:
+    st.sidebar.error("SOLD OUT")
+
+else:
+    st.sidebar.success("Tiket Tersedia")
