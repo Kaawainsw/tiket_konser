@@ -1,7 +1,6 @@
 # app.py
 
 import streamlit as st
-from PIL import Image
 
 # =========================
 # CONFIG PAGE
@@ -33,39 +32,53 @@ h3 {
     color: #003366;
 }
 
-.kotak {
-    padding: 15px;
-    border-radius: 15px;
+/* BOX AREA */
+.area {
+    padding: 35px;
+    border-radius: 20px;
     text-align: center;
-    color: white;
+    font-size: 28px;
     font-weight: bold;
-    margin-bottom: 10px;
-    font-size: 18px;
+    margin: 10px;
 }
 
+/* WARNA AREA */
 .vip {
-    background-color: #6fd6a8;
+    background-color: #8ef0c1;
     color: black;
 }
 
 .blue {
-    background-color: #69b6ff;
-}
-
-.pink {
-    background-color: #ff9db2;
+    background-color: #7fc8ff;
     color: black;
 }
 
-.sold {
-    background-color: gray;
+.pink {
+    background-color: #ffb3c7;
+    color: black;
 }
 
-.stat-box {
-    background-color: white;
-    padding: 15px;
+/* STAGE */
+.stage {
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding: 25px;
     border-radius: 15px;
-    margin-bottom: 10px;
+    font-size: 35px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+/* BOX STATISTIK */
+.stat-box {
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 20px;
 }
 
 </style>
@@ -76,7 +89,9 @@ h3 {
 # =========================
 
 class Node:
+
     def __init__(self, nama, kategori, jumlah):
+
         self.nama = nama
         self.kategori = kategori
         self.jumlah = jumlah
@@ -84,10 +99,12 @@ class Node:
 
 
 class LinkedList:
+
     def __init__(self):
+
         self.head = None
 
-    # tambah data
+    # TAMBAH DATA
     def tambah(self, nama, kategori, jumlah):
 
         node_baru = Node(
@@ -97,6 +114,7 @@ class LinkedList:
         )
 
         if self.head is None:
+
             self.head = node_baru
 
         else:
@@ -108,7 +126,7 @@ class LinkedList:
 
             current.next = node_baru
 
-    # tampil data
+    # TAMPIL DATA
     def tampilkan(self):
 
         data = []
@@ -118,20 +136,21 @@ class LinkedList:
         while current:
 
             harga = harga_tiket[current.kategori]
+
             total = harga * current.jumlah
 
             data.append({
                 "Nama": current.nama,
                 "Kategori": current.kategori,
-                "Jumlah": current.jumlah,
-                "Total": f"Rp {total:,}"
+                "Jumlah Tiket": current.jumlah,
+                "Total Harga": f"Rp {total:,}"
             })
 
             current = current.next
 
         return data
 
-    # hitung tiket per kategori
+    # HITUNG TIKET
     def hitung_tiket(self, kategori):
 
         total = 0
@@ -153,6 +172,7 @@ class LinkedList:
 # =========================
 
 if "konser" not in st.session_state:
+
     st.session_state.konser = LinkedList()
 
 # =========================
@@ -186,36 +206,101 @@ st.title("🎫 TXT CONCERT TICKET SYSTEM")
 st.write("### Tomorrow X Together World Tour")
 
 # =========================
-# GAMBAR DENAH
-# =========================
-
-gambar = Image.open("txt_concert.png")
-
-st.image(
-    gambar,
-    use_container_width=True
-)
-
-# =========================
-# BOOKING FORM
+# DENAH KONSER
 # =========================
 
 st.write("---")
-st.subheader("📝 Booking Tiket")
 
-col1, col2, col3 = st.columns(3)
+st.subheader("🎤 Denah Konser")
+
+# STAGE
+st.markdown("""
+<div class="stage">
+STAGE
+</div>
+""", unsafe_allow_html=True)
+
+# VIP
+col1, col2 = st.columns(2)
 
 with col1:
-    nama = st.text_input("Nama Pembeli")
+
+    st.markdown("""
+    <div class="area vip">
+    VIP A
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
+
+    st.markdown("""
+    <div class="area vip">
+    VIP B
+    </div>
+    """, unsafe_allow_html=True)
+
+# BLUE
+col3, col4 = st.columns(2)
+
+with col3:
+
+    st.markdown("""
+    <div class="area blue">
+    BLUE A
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+
+    st.markdown("""
+    <div class="area blue">
+    BLUE B
+    </div>
+    """, unsafe_allow_html=True)
+
+# PINK
+col5, col6 = st.columns(2)
+
+with col5:
+
+    st.markdown("""
+    <div class="area pink">
+    PINK A
+    </div>
+    """, unsafe_allow_html=True)
+
+with col6:
+
+    st.markdown("""
+    <div class="area pink">
+    PINK B
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================
+# FORM BOOKING
+# =========================
+
+st.write("---")
+
+st.subheader("📝 Booking Tiket")
+
+col7, col8, col9 = st.columns(3)
+
+with col7:
+
+    nama = st.text_input(
+        "Nama Pembeli"
+    )
+
+with col8:
 
     kategori = st.selectbox(
         "Kategori Tiket",
         list(kuota_tiket.keys())
     )
 
-with col3:
+with col9:
 
     jumlah = st.number_input(
         "Jumlah Tiket",
@@ -224,7 +309,7 @@ with col3:
     )
 
 # =========================
-# SISA TIKET
+# CEK SISA TIKET
 # =========================
 
 terjual = st.session_state.konser.hitung_tiket(
@@ -233,7 +318,9 @@ terjual = st.session_state.konser.hitung_tiket(
 
 sisa = kuota_tiket[kategori] - terjual
 
-st.info(f"Sisa tiket {kategori}: {sisa}")
+st.info(
+    f"Sisa tiket {kategori}: {sisa}"
+)
 
 # =========================
 # BUTTON PESAN
@@ -243,11 +330,15 @@ if st.button("🎟 Pesan Tiket"):
 
     if nama == "":
 
-        st.warning("Nama wajib diisi!")
+        st.warning(
+            "Nama wajib diisi!"
+        )
 
     elif jumlah > sisa:
 
-        st.error("Kuota tiket tidak mencukupi!")
+        st.error(
+            "Kuota tiket tidak mencukupi!"
+        )
 
     else:
 
@@ -257,33 +348,43 @@ if st.button("🎟 Pesan Tiket"):
             jumlah
         )
 
-        st.success("Tiket berhasil dipesan!")
+        st.success(
+            "Tiket berhasil dipesan!"
+        )
 
 # =========================
-# TAMPIL DATA PEMBELI
+# DATA PEMBELI
 # =========================
 
 st.write("---")
+
 st.subheader("📋 Daftar Pembeli")
 
 data = st.session_state.konser.tampilkan()
 
 if data:
+
     st.table(data)
 
 else:
-    st.info("Belum ada pembeli")
+
+    st.info(
+        "Belum ada pembeli"
+    )
 
 # =========================
 # STATISTIK
 # =========================
 
 st.write("---")
+
 st.subheader("📊 Statistik Tiket")
 
-col1, col2, col3 = st.columns(3)
+col10, col11, col12 = st.columns(3)
 
-kategori_list = list(kuota_tiket.keys())
+kategori_list = list(
+    kuota_tiket.keys()
+)
 
 for index, kategori in enumerate(kategori_list):
 
@@ -294,36 +395,52 @@ for index, kategori in enumerate(kategori_list):
     sisa = kuota_tiket[kategori] - terjual
 
     if "VIP" in kategori:
-        kelas = "vip"
+
+        warna = "#6fd6a8"
 
     elif "BLUE" in kategori:
-        kelas = "blue"
+
+        warna = "#69b6ff"
 
     else:
-        kelas = "pink"
+
+        warna = "#ff9db2"
 
     html = f"""
-    <div class="kotak {kelas}">
-        {kategori}<br>
-        Terjual: {terjual}<br>
-        Sisa: {sisa}
+    <div class="stat-box"
+    style="background-color:{warna}; color:black;">
+        {kategori}<br><br>
+        Terjual : {terjual}<br>
+        Sisa : {sisa}
     </div>
     """
 
     if index % 3 == 0:
-        with col1:
-            st.markdown(html, unsafe_allow_html=True)
+
+        with col10:
+            st.markdown(
+                html,
+                unsafe_allow_html=True
+            )
 
     elif index % 3 == 1:
-        with col2:
-            st.markdown(html, unsafe_allow_html=True)
+
+        with col11:
+            st.markdown(
+                html,
+                unsafe_allow_html=True
+            )
 
     else:
-        with col3:
-            st.markdown(html, unsafe_allow_html=True)
+
+        with col12:
+            st.markdown(
+                html,
+                unsafe_allow_html=True
+            )
 
 # =========================
-# SOLD OUT CHECK
+# SOLD OUT
 # =========================
 
 semua_habis = True
@@ -337,12 +454,17 @@ for kategori in kuota_tiket:
     sisa = kuota_tiket[kategori] - terjual
 
     if sisa > 0:
+
         semua_habis = False
 
 if semua_habis:
 
-    st.error("🚫 SEMUA TIKET SOLD OUT")
+    st.error(
+        "🚫 SEMUA TIKET SOLD OUT"
+    )
 
 else:
 
-    st.success("✅ Tiket Masih Tersedia")
+    st.success(
+        "✅ Tiket Masih Tersedia"
+    )
