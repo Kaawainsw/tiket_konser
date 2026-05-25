@@ -371,7 +371,99 @@ else:
     st.info(
         "Belum ada pembeli"
     )
+# =========================
+# UPDATE DATA
+# =========================
 
+st.write("---")
+
+st.subheader("✏ Update Tiket")
+
+daftar_nama = [
+    pembeli["Nama"]
+    for pembeli in data
+]
+
+if daftar_nama:
+
+    nama_update = st.selectbox(
+        "Pilih Pembeli",
+        daftar_nama
+    )
+
+    kategori_baru = st.selectbox(
+        "Kategori Baru",
+        list(kuota_tiket.keys())
+    )
+
+    jumlah_baru = st.number_input(
+        "Jumlah Baru",
+        min_value=1,
+        step=1,
+        key="update_jumlah"
+    )
+
+    if st.button("Update Tiket"):
+
+        current = st.session_state.konser.head
+
+        while current:
+
+            if current.nama == nama_update:
+
+                current.kategori = kategori_baru
+                current.jumlah = jumlah_baru
+
+                st.success(
+                    "Data berhasil diupdate!"
+                )
+
+                break
+
+            current = current.next
+
+# =========================
+# DELETE DATA
+# =========================
+
+st.write("---")
+
+st.subheader("🗑 Batalkan Tiket")
+
+if daftar_nama:
+
+    nama_hapus = st.selectbox(
+        "Pilih Nama",
+        daftar_nama,
+        key="hapus"
+    )
+
+    if st.button("Hapus Tiket"):
+
+        current = st.session_state.konser.head
+        previous = None
+
+        while current:
+
+            if current.nama == nama_hapus:
+
+                if previous is None:
+
+                    st.session_state.konser.head = current.next
+
+                else:
+
+                    previous.next = current.next
+
+                st.success(
+                    "Tiket berhasil dibatalkan!"
+                )
+
+                break
+
+            previous = current
+            current = current.next
+            
 # =========================
 # STATISTIK
 # =========================
