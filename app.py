@@ -2,36 +2,87 @@
 
 import streamlit as st
 
+# =========================
+# SETTING PAGE
+# =========================
+
+st.set_page_config(
+    page_title="Tiket Konser",
+    layout="wide"
+)
 
 # =========================
-# CLASS NODE
+# CSS CUSTOM
 # =========================
+
+st.markdown("""
+<style>
+
+.stApp {
+    background-color: #cfefff;
+}
+
+h1 {
+    text-align: center;
+    color: #003366;
+}
+
+.kotak-seat {
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    margin: 5px;
+}
+
+.vip {
+    background-color: #ff4b4b;
+}
+
+.festival {
+    background-color: #4b7bff;
+}
+
+.booked {
+    background-color: gray;
+}
+
+.panggung {
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# LINKED LIST
+# =========================
+
 class Node:
-    def __init__(self, nama, kategori, jumlah):
+    def __init__(self, nama, seat):
         self.nama = nama
-        self.kategori = kategori
-        self.jumlah = jumlah
+        self.seat = seat
         self.next = None
 
 
-# =========================
-# CLASS LINKED LIST
-# =========================
-class TicketLinkedList:
+class LinkedList:
     def __init__(self):
         self.head = None
 
-    # tambah pembeli
-    def tambah_pembeli(self, nama, kategori, jumlah):
+    def tambah(self, nama, seat):
 
-        pembeli_baru = Node(
-            nama,
-            kategori,
-            jumlah
-        )
+        node_baru = Node(nama, seat)
 
         if self.head is None:
-            self.head = pembeli_baru
+            self.head = node_baru
 
         else:
             current = self.head
@@ -39,10 +90,22 @@ class TicketLinkedList:
             while current.next:
                 current = current.next
 
-            current.next = pembeli_baru
+            current.next = node_baru
 
-    # tampilkan data
-    def tampilkan_pembeli(self):
+    def cek_seat(self, seat):
+
+        current = self.head
+
+        while current:
+
+            if current.seat == seat:
+                return True
+
+            current = current.next
+
+        return False
+
+    def tampilkan(self):
 
         data = []
 
@@ -50,134 +113,124 @@ class TicketLinkedList:
 
         while current:
 
-            # harga tiket
-            if current.kategori == "VIP":
-                harga = 500000
-            else:
-                harga = 250000
-
-            total = harga * current.jumlah
-
             data.append({
                 "Nama": current.nama,
-                "Kategori": current.kategori,
-                "Jumlah Tiket": current.jumlah,
-                "Total Harga": f"Rp {total:,}"
+                "Seat": current.seat
             })
 
             current = current.next
 
         return data
 
-    # hapus pembeli
-    def hapus_pembeli(self, nama):
-
-        current = self.head
-        previous = None
-
-        while current:
-
-            if current.nama == nama:
-
-                if previous is None:
-                    self.head = current.next
-
-                else:
-                    previous.next = current.next
-
-                return True
-
-            previous = current
-            current = current.next
-
-        return False
-
-    # hitung total tiket
-    def total_tiket(self):
-
-        total = 0
-
-        current = self.head
-
-        while current:
-            total += current.jumlah
-            current = current.next
-
-        return total
-
 
 # =========================
-# STREAMLIT
+# SESSION STATE
 # =========================
 
-st.set_page_config(
-    page_title="Sistem Tiket Konser",
-    layout="wide"
+if "konser" not in st.session_state:
+    st.session_state.konser = LinkedList()
+
+# =========================
+# JUDUL
+# =========================
+
+st.title("🎫 SISTEM TIKET KONSER")
+
+# =========================
+# PANGGUNG
+# =========================
+
+st.markdown("""
+<div class="panggung">
+🎤 PANGGUNG
+</div>
+""", unsafe_allow_html=True)
+
+# =========================
+# TAMPILAN SEAT
+# =========================
+
+seat_list = [
+    ["VIP-1", "VIP-2", "VIP-3", "VIP-4"],
+    ["FES-1", "FES-2", "FES-3", "FES-4"],
+    ["FES-5", "FES-6", "FES-7", "FES-8"]
+]
+
+st.subheader("🪑 Denah Seat")
+
+for baris in seat_list:
+
+    cols = st.columns(4)
+
+    for i, seat in enumerate(baris):
+
+        if st.session_state.konser.cek_seat(seat):
+
+            cols[i].markdown(
+                f"""
+                <div class="kotak-seat booked">
+                {seat}<br>BOOKED
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        else:
+
+            if "VIP" in seat:
+                kelas = "vip"
+            else:
+                kelas = "festival"
+
+            cols[i].markdown(
+                f"""
+                <div class="kotak-seat {kelas}">
+                {seat}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+# =========================
+# FORM BOOKING
+# =========================
+
+st.subheader("📝 Booking Tiket")
+
+nama = st.text_input("Nama")
+
+seat_pilih = st.selectbox(
+    "Pilih Seat",
+    [
+        seat
+        for row in seat_list
+        for seat in row
+        if not st.session_state.konser.cek_seat(seat)
+    ]
 )
 
-st.title("🎫 Sistem Pemesanan Tiket Konser")
-
-# session state
-if "tiket" not in st.session_state:
-    st.session_state.tiket = TicketLinkedList()
-
-TOTAL_TIKET = 100
-
-# =========================
-# FORM INPUT
-# =========================
-
-st.subheader("📝 Pesan Tiket")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    nama = st.text_input("Nama Pembeli")
-
-with col2:
-    kategori = st.selectbox(
-        "Kategori Tiket",
-        ["VIP", "Festival"]
-    )
-
-with col3:
-    jumlah = st.number_input(
-        "Jumlah Tiket",
-        min_value=1,
-        step=1
-    )
-
-# tombol tambah
 if st.button("Pesan Tiket"):
 
-    tiket_terjual = st.session_state.tiket.total_tiket()
-
-    if tiket_terjual + jumlah > TOTAL_TIKET:
-
-        st.error("Tiket tidak mencukupi!")
-
-    elif nama == "":
+    if nama == "":
 
         st.warning("Nama wajib diisi!")
 
     else:
 
-        st.session_state.tiket.tambah_pembeli(
+        st.session_state.konser.tambah(
             nama,
-            kategori,
-            jumlah
+            seat_pilih
         )
 
         st.success("Tiket berhasil dipesan!")
 
-
 # =========================
-# TABEL PEMBELI
+# DATA PEMBELI
 # =========================
 
 st.subheader("📋 Daftar Pembeli")
 
-data = st.session_state.tiket.tampilkan_pembeli()
+data = st.session_state.konser.tampilkan()
 
 if data:
     st.table(data)
@@ -185,62 +238,27 @@ if data:
 else:
     st.info("Belum ada pembeli")
 
-
 # =========================
-# BATALKAN TIKET
-# =========================
-
-st.subheader("❌ Batalkan Tiket")
-
-daftar_nama = [
-    pembeli["Nama"]
-    for pembeli in data
-]
-
-if daftar_nama:
-
-    nama_hapus = st.selectbox(
-        "Pilih Pembeli",
-        daftar_nama
-    )
-
-    if st.button("Batalkan Tiket"):
-
-        hasil = st.session_state.tiket.hapus_pembeli(
-            nama_hapus
-        )
-
-        if hasil:
-            st.success("Tiket berhasil dibatalkan!")
-
-        else:
-            st.error("Data tidak ditemukan")
-
-else:
-    st.info("Tidak ada data pembeli")
-
-
-# =========================
-# STATISTIK
+# SIDEBAR
 # =========================
 
-tiket_terjual = st.session_state.tiket.total_tiket()
-tiket_sisa = TOTAL_TIKET - tiket_terjual
+total_seat = 12
+terjual = len(data)
+sisa = total_seat - terjual
 
 st.sidebar.title("📊 Statistik")
 
 st.sidebar.metric(
-    "Tiket Terjual",
-    tiket_terjual
+    "Seat Terjual",
+    terjual
 )
 
 st.sidebar.metric(
-    "Tiket Tersisa",
-    tiket_sisa
+    "Seat Tersisa",
+    sisa
 )
 
-# status tiket
-if tiket_sisa == 0:
+if sisa == 0:
     st.sidebar.error("SOLD OUT")
 
 else:
